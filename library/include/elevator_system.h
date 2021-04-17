@@ -37,8 +37,9 @@ typedef struct {
 
 typedef struct {
     uint16_t no;
+    int16_t last_floor;
     direction direction;
-    elevator_state elevator_state;
+    elevator_state state;
     AVS_VECTOR(floor_request) queued_floors;
 } elevator;
 
@@ -47,5 +48,11 @@ typedef struct {
     AVS_VECTOR(floor) floors;
 } elevator_system;
 
-void init_elevator_system(elevator_system *system, uint16_t elevator_count, uint16_t floor_count, floor floors[]);
-void free_elevator_system(elevator_system *system);
+void elevator_system_init(elevator_system *system, uint16_t elevator_count, uint16_t floor_count, floor floors[]);
+void elevator_system_free(elevator_system *system);
+
+void elevator_system_step(elevator_system *system);
+void elevator_system_request_pickup(elevator_system *system, floor_request *request);
+void elevator_system_request_dropoff(elevator_system *system, uint16_t elevator_no, int16_t floor_no);
+
+void elevator_step(elevator *elevator);
