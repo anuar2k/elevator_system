@@ -1,0 +1,3 @@
+[submodule "library/deps/avs_commons"]
+	path = library/deps/avs_commons
+	url = git@github.com:anuar2k/avs_commons.git
