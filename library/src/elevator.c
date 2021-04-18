@@ -35,6 +35,7 @@ void handle_stationary(elevator *elevator) {
         }
         else {
             elevator->direction = head->floor_no > elevator->last_floor ? DIR_UP : DIR_DOWN;
+            elevator_switch_state(elevator, EL_BETWEEN_FLOORS);
         }
     }
 }
