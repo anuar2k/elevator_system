@@ -9,6 +9,7 @@ INCLUDES := $(wildcard include/*.h)
 all: build/libelevator_system.a
 
 build/libelevator_system.a: $(OBJ)
+	mkdir -p build
 	$(AR) rcs build/libelevator_system.a obj/*.o
 
 obj/%.o: src/%.c $(INCLUDES)
