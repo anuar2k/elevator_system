@@ -9,11 +9,14 @@ all: build/client
 build/client: client.c ../library/build/libelevator_system.a
 	$(CC) $(CFLAGS) \
 		-I../library/deps/avs_commons/include_public \
+		-I../library/deps/avs_commons/src \
 		-I../library/include \
 		-I../library/config \
 		-L../library/build \
 		client.c \
+		$(shell find ../library/deps/avs_commons/src -name '*.c') \
 		-lelevator_system \
+		-lm \
 		-o build/client
 
 ../library/build/libelevator_system.a:

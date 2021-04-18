@@ -1,21 +1,25 @@
-CC      := gcc
-CFLAGS  := -g2 -Wall
+CC       := gcc
+CFLAGS   := -g2 -Wall
+SRC      := $(wildcard src/*.c)
+OBJ      := $(patsubst src/%.c, obj/%.o, $(SRC))
+INCLUDES := $(wildcard include/*.h)
 
 .PHONY: all clean
 
 all: build/libelevator_system.a
 
-build/libelevator_system.a: src/elevator_system.c include/elevator_system.h
+build/libelevator_system.a: $(OBJ)
+	$(AR) rcs build/libelevator_system.a obj/*.o
+
+obj/%.o: src/%.c $(INCLUDES)
+	mkdir -p obj
 	$(CC) $(CFLAGS) \
 		-Ideps/avs_commons/include_public \
 		-Ideps/avs_commons/src \
 		-Iconfig \
 		-Iinclude \
 		-c \
-		$(shell find deps/avs_commons/src -name '*.c') \
-		src/elevator_system.c
-	$(AR) rcs build/libelevator_system.a *.o
-	$(RM) *.o
+		$< -o $@
 
 clean:
-	$(RM) build/*
+	$(RM) build/* obj/*
