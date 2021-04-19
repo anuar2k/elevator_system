@@ -1,11 +1,11 @@
 #include <elevator.h>
 #include <string.h>
-#include <stdio.h> //temporary
 
-void handle_stationary(elevator* elevator);
-void handle_between_floors(elevator* elevator);
-void handle_passing_by(elevator* elevator);
-size_t request_weight(elevator* elevator, const floor_request *req);
+void handle_stationary(elevator *elevator);
+void handle_between_floors(elevator *elevator);
+void handle_passing_by(elevator *elevator);
+size_t request_weight(elevator *elevator, const floor_request *req);
+direction destination_direction(elevator *elevator, const floor_request *req);
 
 void elevator_step(elevator *elevator) {
     if (elevator_state_finished(elevator)) {
@@ -26,26 +26,25 @@ void handle_stationary(elevator *elevator) {
     if (queued_no == 0) {
         elevator_switch_state(elevator, EL_STATIONARY);
         elevator->direction = DIR_NONE;
+        return;
+    }
+
+    floor_request *head = AVS_VECTOR_FRONT(elevator->queued_floors);
+
+    if (head->floor_no == elevator->last_floor) {
+        while (head && head->floor_no == elevator->last_floor) {
+            AVS_VECTOR_REMOVE_AT(&elevator->queued_floors, 0);
+            head = AVS_VECTOR_FRONT(elevator->queued_floors);
+        }
+        elevator_switch_state(elevator, EL_STATIONARY);
     }
     else {
-        floor_request *head = AVS_VECTOR_FRONT(elevator->queued_floors);
-
-        if (head->floor_no == elevator->last_floor) {
-            while (head && head->floor_no == elevator->last_floor) {
-                AVS_VECTOR_REMOVE_AT(&elevator->queued_floors, 0);
-                head = AVS_VECTOR_FRONT(elevator->queued_floors);
-            }
-            elevator_switch_state(elevator, EL_STATIONARY);
-        }
-        else {
-            elevator->direction = head->floor_no > elevator->last_floor ? DIR_UP : DIR_DOWN;
-            elevator_switch_state(elevator, EL_BETWEEN_FLOORS);
-        }
+        elevator->direction = head->floor_no > elevator->last_floor ? DIR_UP : DIR_DOWN;
+        elevator_switch_state(elevator, EL_BETWEEN_FLOORS);
     }
 }
 
 void handle_between_floors(elevator *elevator) {
-    // printf("%zu\n", AVS_VECTOR_SIZE(elevator->elevator_system->floors));
     const size_t queued_no = AVS_VECTOR_SIZE(elevator->queued_floors);
     assert(queued_no > 0);
     assert(!(elevator->direction == DIR_DOWN && elevator->last_floor == 0));
@@ -72,10 +71,9 @@ bool elevator_enqueue_floor(elevator *elevator, const floor_request *floor_reque
     const size_t queued_no = AVS_VECTOR_SIZE(elevator->queued_floors);
     const size_t incoming_weight = request_weight(elevator, floor_request);
 
-    // printf("incoming weight: %zu\n", incoming_weight);
-
     size_t last_weight;
     size_t i = 0;
+
     while (i < queued_no && incoming_weight > (last_weight = request_weight(elevator, &(*elevator->queued_floors)[i]))) {
         i++;
     }
@@ -113,25 +111,8 @@ size_t request_weight(elevator *elevator, const floor_request *req) {
 
     size_t distance = 0;
     if (req->floor_no != elevator->last_floor || elevator->state != EL_STATIONARY) {
-        direction dest_dir; //the direction of elevator, when stopping at req->floor_no
-
-        if (req->req_type == REQ_PICK_UP) {
-            dest_dir = DIR_UP;
-        }
-        else if (req->req_type == REQ_PICK_DOWN) {
-            dest_dir = DIR_DOWN;
-        }
-        else {
-            if (req->floor_no > elevator->last_floor) {
-                dest_dir = DIR_UP;
-            }
-            else if (req->floor_no == elevator->last_floor) {
-                dest_dir = elevator->direction == DIR_UP ? DIR_DOWN : DIR_UP;
-            }
-            else {
-                dest_dir = DIR_DOWN;
-            }
-        }
+        //the direction of elevator, when stopping at req->floor_no
+        direction dest_dir = destination_direction(elevator, req);
 
         //following simulation can be turned into a O(1), gigantic pattern match
         size_t sim_floor = elevator->last_floor;
@@ -168,4 +149,12 @@ size_t request_weight(elevator *elevator, const floor_request *req) {
 
     //multiply distance and add 1 if REQ_DROPOFF to have a total order on all requests
     return distance * 2 + (req->req_type == REQ_DROPOFF ? 1 : 0);
+}
+
+direction destination_direction(elevator *elevator, const floor_request *req) {
+    if (req->req_type == REQ_PICK_UP)         return DIR_UP;
+    if (req->req_type == REQ_PICK_DOWN)       return DIR_DOWN;
+    if (req->floor_no > elevator->last_floor) return DIR_UP;
+    if (req->floor_no < elevator->last_floor) return DIR_DOWN;
+    return elevator->direction == DIR_UP ? DIR_DOWN : DIR_UP;
 }

@@ -26,9 +26,9 @@ int main() {
 
     elevator_system_init(&system, 1, sizeof(floors) / sizeof(*floors), floors);
 
-    bool x = elevator_system_request_pickup(&system, 3, DIR_DOWN);
+    bool x = elevator_system_request_pickup(&system, 1, DIR_DOWN);
     bool y = elevator_system_request_pickup(&system, 3, DIR_DOWN);
-    bool z = elevator_system_request_pickup(&system, 1, DIR_DOWN);
+    bool z = elevator_system_request_pickup(&system, 3, DIR_DOWN);
     printf("%d %d %d\n", x, y, z);
 
     for (size_t i = 0; i < 50; i++) {
