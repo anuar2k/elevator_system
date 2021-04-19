@@ -24,3 +24,4 @@ obj/%.o: src/%.c $(INCLUDES)
 
 clean:
 	$(RM) build/* obj/*
+	

@@ -5,10 +5,10 @@
 #include <avsystem/commons/avs_vector.h>
 
 typedef enum {
-    DIR_NONE = 0b00,
-    DIR_UP   = 0b01,
-    DIR_DOWN = 0b10,
-    DIR_BOTH = 0b11
+    DIR_NONE,
+    DIR_UP,
+    DIR_DOWN,
+    DIR_BOTH,
 } direction;
 
 typedef enum {
@@ -16,11 +16,6 @@ typedef enum {
     REQ_PICK_DOWN,
     REQ_DROPOFF
 } req_type;
-
-typedef struct {
-    req_type req_type;
-    size_t floor_no;
-} floor_request;
 
 typedef enum {
     EL_STATIONARY = 0,
@@ -32,7 +27,11 @@ typedef enum {
 extern const size_t state_length[elevator_state_length];
 
 typedef struct {
-    size_t no;
+    req_type req_type;
+    size_t floor_no;
+} floor_request;
+
+typedef struct {
     const char *label;
     direction available_directions;
     direction requested_directions;
@@ -42,7 +41,6 @@ typedef struct elevator elevator;
 typedef struct elevator_system elevator_system;
 
 struct elevator {
-    size_t no;
     size_t last_floor;
     direction direction;
     elevator_state state;

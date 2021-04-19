@@ -13,7 +13,6 @@ void elevator_system_init(elevator_system *system, size_t elevator_count, size_t
 
     for (size_t i = 0; i < floor_count; i++) {
         floor to_insert = floors[i];
-        to_insert.no = i;
         to_insert.requested_directions = DIR_NONE;
 
         AVS_VECTOR_PUSH(&system->floors, &to_insert);
@@ -21,8 +20,7 @@ void elevator_system_init(elevator_system *system, size_t elevator_count, size_t
 
     for (size_t i = 0; i < elevator_count; i++) {
         elevator to_insert = {
-            .no = i,
-            .last_floor = (*system->floors)[0].no,
+            .last_floor = 0,
             .direction = DIR_NONE,
             .state = EL_STATIONARY,
             .queued_floors = AVS_VECTOR_NEW(floor_request),
@@ -50,20 +48,14 @@ void elevator_system_step(elevator_system *system) {
 }
 
 bool elevator_system_request_pickup(elevator_system *system, size_t floor_no, direction direction) {
-    floor_request floor_request = {
+    const floor_request floor_request = {
         .req_type = direction == DIR_UP ? REQ_PICK_UP : REQ_PICK_DOWN,
         .floor_no = floor_no
     };
 
-    elevator *elevator = bsearch(
-        &system->rr_next_elevator,
-        *system->elevators,
-        AVS_VECTOR_SIZE(system->elevators),
-        sizeof(*system->elevators),
-        elevator_search_by_no_cmp
-    );
+    elevator *elevator = &(*system->elevators)[system->rr_next_elevator++];
 
-    if (++system->rr_next_elevator == AVS_VECTOR_SIZE(system->elevators)) {
+    if (system->rr_next_elevator == AVS_VECTOR_SIZE(system->elevators)) {
         system->rr_next_elevator = 0;
     }
 
@@ -71,7 +63,7 @@ bool elevator_system_request_pickup(elevator_system *system, size_t floor_no, di
 }
 
 bool elevator_system_request_dropoff(elevator_system *system, size_t elevator_no, size_t floor_no) {
-    floor_request floor_request = {
+    const floor_request floor_request = {
         .req_type = REQ_DROPOFF,
         .floor_no = floor_no
     };
