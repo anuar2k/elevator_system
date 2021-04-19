@@ -58,12 +58,12 @@ static void MX_USART2_UART_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 void send_char(char c) {
-	HAL_UART_Transmit(&huart2, (uint8_t*)&c, 1, 1000);
+  HAL_UART_Transmit(&huart2, (uint8_t*)&c, 1, 1000);
 }
 
 int __io_putchar(int c) {
-	send_char(c);
-	return c;
+  send_char(c);
+  return c;
 }
 /* USER CODE END 0 */
 
@@ -98,18 +98,18 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
   floor floors[] = {
-  		{
-  				.label = "-1",
-					.available_directions = DIR_UP
-  		},
-			{
-					.label = "0",
-					.available_directions = DIR_BOTH
-			},
-			{
-					.label = "+1",
-					.available_directions = DIR_DOWN
-			}
+    {
+      .label = "-1",
+      .available_directions = DIR_UP
+    },
+    {
+      .label = "0",
+      .available_directions = DIR_BOTH
+    },
+    {
+      .label = "+1",
+      .available_directions = DIR_DOWN
+    }
   };
 
   elevator_system es;
@@ -126,8 +126,8 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-  	HAL_Delay(1000);
-  	printf("queued requests: %u\n", AVS_VECTOR_SIZE((*es.elevators)[0].queued_floors));
+    HAL_Delay(1000);
+    printf("queued requests: %u\n", AVS_VECTOR_SIZE((*es.elevators)[0].queued_floors));
   }
   /* USER CODE END 3 */
 }
