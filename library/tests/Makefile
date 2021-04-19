@@ -4,11 +4,11 @@ SRC      := $(wildcard src/*.c)
 TEST_SRC := $(wildcard *.c)
 INCLUDES := $(wildcard include/*.h)
 
-.PHONY: all test_run clean
+.PHONY: all test clean
 
-all: test_runner
+all: test
 
-test_run: test_runner
+test: test_runner
 	./test_runner --verbose
 
 test_runner: $(SRC) $(TEST_SRC) $(INCLUDES)

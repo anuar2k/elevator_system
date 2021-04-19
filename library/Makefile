@@ -4,7 +4,7 @@ SRC      := $(wildcard src/*.c)
 OBJ      := $(patsubst src/%.c, obj/%.o, $(SRC))
 INCLUDES := $(wildcard include/*.h)
 
-.PHONY: all clean
+.PHONY: all clean test
 
 all: build/libelevator_system.a
 
@@ -21,6 +21,9 @@ obj/%.o: src/%.c $(INCLUDES)
 		-Iinclude \
 		-c \
 		$< -o $@
+
+test:
+	make -C tests test
 
 clean:
 	$(RM) build/* obj/*
