@@ -9,13 +9,34 @@
 
 #define GREEN_ON_BLACK 1
 
+#define WITH_ATTR(attr, fun, ...) attron(attr); fun(__VA_ARGS__); attroff(attr)
+
 int main() {
     printf("enter elevator count: ");
     fflush(stdout);
 
-    size_t el_count;
-    if (scanf(" %zu", &el_count) != 1) {
+    size_t elevator_count;
+    if (scanf(" %zu", &elevator_count) != 1) {
         fprintf(stderr, "malformed input\n");
+        return EXIT_FAILURE;
+    }
+
+    if (elevator_count == 0) {
+        fprintf(stderr, "elevator count must be positive\n");
+        return EXIT_FAILURE;
+    }
+
+    printf("enter floor count: ");
+    fflush(stdout);
+
+    size_t floor_count;
+    if (scanf(" %zu", &floor_count) != 1) {
+        fprintf(stderr, "malformed input\n");
+        return EXIT_FAILURE;
+    }
+
+    if (floor_count == 0) {
+        fprintf(stderr, "floor count must be positive\n");
         return EXIT_FAILURE;
     }
 
@@ -23,43 +44,6 @@ int main() {
     int c;
     while ((c = getchar()) != '\n' && c != EOF)
         ;
-
-    if (el_count == 0) {
-        fprintf(stderr, "elevator count must be positive\n");
-        return EXIT_FAILURE;
-    }
-
-    printf("enter floor labels, in increasing order, separated with spaces (e.g. -1 ground 0 1 2): ");
-    fflush(stdout);
-
-    AVS_VECTOR(char*) floor_labels = AVS_VECTOR_NEW(char*);
-
-    char *line = NULL;
-    size_t line_len = 0;
-    if (getline(&line, &line_len, stdin) > 0) {
-        char *line_curr = line;
-        
-        while (*line_curr) {
-            char *label = NULL;
-            int n = 0;
-
-            if (sscanf(line_curr, " %ms %n", &label, &n) != 1) {
-                fprintf(stderr, "malformed input\n");
-                return EXIT_FAILURE;
-            }
-            else {
-                AVS_VECTOR_PUSH(&floor_labels, &label);
-            }
-
-            line_curr += n;
-        }
-    }
-    else {
-        fprintf(stderr, "malformed input\n");
-        return EXIT_FAILURE;
-    }
-
-    free(line);
 
     initscr();
     cbreak();
@@ -79,15 +63,23 @@ int main() {
     attron(COLOR_PAIR(GREEN_ON_BLACK));
     mvprintw(0, 0, "ELEVATOR SYSTEM");
     attroff(COLOR_PAIR(GREEN_ON_BLACK));
-    mvprintw(1, 0, "1. use "); attron(A_BOLD); printw("ARROWS"); attroff(A_BOLD); printw(" to select");
-    mvprintw(2, 0, "   floors/elevators");
-    mvprintw(3, 0, "2. use "); attron(A_BOLD); printw("P"); attroff(A_BOLD); printw(" to request a pickup");
-    mvprintw(4, 0, "   for the selected floor");
-    mvprintw(5, 0, "3. use "); attron(A_BOLD); printw("D"); attroff(A_BOLD); printw(" to request a dropoff");
-    mvprintw(6, 0, "   for the selected floor/elevator");
-    mvprintw(7, 0, "4. to advance, press "); attron(A_BOLD); printw("SPACE"); attroff(A_BOLD); printw(" (1 step)");
-    mvprintw(8, 0, "   or keys "); attron(A_BOLD); printw("1-9"); attroff(A_BOLD); printw(" for 2^n steps");
-    mvprintw(9, 0, "5. quit with "); attron(A_BOLD); printw("Q"); attroff(A_BOLD);
+    mvprintw( 1, 0, "1. use "); WITH_ATTR(A_BOLD, printw, "ARROWS"); printw(" to select");
+    mvprintw( 2, 0, "   floors/elevators");
+    mvprintw( 3, 0, "2. use "); WITH_ATTR(A_BOLD, printw, "U"); printw(" to request a travel up");
+    mvprintw( 4, 0, "   for the selected floor");
+    mvprintw( 5, 0, "3. use "); WITH_ATTR(A_BOLD, printw, "D"); printw(" to request a travel down");
+    mvprintw( 6, 0, "   for the selected floor");
+    mvprintw( 7, 0, "4. use "); WITH_ATTR(A_BOLD, printw, "O"); printw(" to request a drop-off");
+    mvprintw( 8, 0, "   for the selected floor/elevator");
+    mvprintw( 9, 0, "5. to advance, press "); WITH_ATTR(A_BOLD, printw, "SPACE"); printw(" (1 step)");
+    mvprintw(10, 0, "   or keys "); WITH_ATTR(A_BOLD, printw, "1-9"); printw(" for 2^n steps");
+    mvprintw(11, 0, "6. quit with "); WITH_ATTR(A_BOLD, printw, "Q");
+
+    elevator_system el_system;
+    elevator_system_init(&el_system, elevator_count, floor_count);
+
+    size_t curr_elevator = 0;
+    size_t curr_floor = 0;
 
     while (true) {
         //draw...
@@ -97,25 +89,36 @@ int main() {
         int chr = getch();
         switch (chr) {
             case KEY_UP: {
-
+                if (curr_floor < AVS_VECTOR_SIZE(el_system.floors) - 1) {
+                    curr_floor++;
+                }
             } break;
             case KEY_DOWN: {
-
+                if (curr_floor > 0) {
+                    curr_floor--;
+                }
             } break;
             case KEY_LEFT: {
-
+                if (curr_elevator > 0) {
+                    curr_elevator--;
+                }
             } break;
             case KEY_RIGHT: {
-
+                if (curr_elevator < AVS_VECTOR_SIZE(el_system.elevators) - 1) {
+                    curr_elevator++;
+                }
             } break;
-            case 'p': {
-
+            case 'u': {
+                elevator_system_request_pickup(&el_system, curr_floor, DIR_UP);
             } break;
             case 'd': {
-
+                elevator_system_request_pickup(&el_system, curr_floor, DIR_DOWN);
+            } break;
+            case 'o': {
+                elevator_system_request_dropoff(&el_system, curr_elevator, curr_floor);
             } break;
             case ' ': {
-
+                elevator_system_step(&el_system);
             } break;
             case '1':
             case '2':
@@ -126,7 +129,14 @@ int main() {
             case '7':
             case '8':
             case '9': {
-
+                int power = chr - '0';
+                size_t steps = 1;
+                while (power-- > 0) {
+                    steps *= 2;
+                }
+                while (steps-- > 0) {
+                    elevator_system_step(&el_system);
+                }
             } break;
             case 'q': {
                 goto quit;
@@ -138,11 +148,4 @@ int main() {
 
     quit:
     endwin();
-
-    char **elem;
-    AVS_VECTOR_CLEAR(&floor_labels, elem) {
-        free(*elem);
-    }
-
-    AVS_VECTOR_DELETE(&floor_labels);
 }

@@ -4,7 +4,7 @@
 void handle_stationary(elevator *elevator);
 void handle_between_floors(elevator *elevator);
 void handle_passing_by(elevator *elevator);
-size_t request_weight(elevator *elevator, const floor_request *req);
+size_t request_distance(elevator *elevator, const floor_request *req);
 direction destination_direction(elevator *elevator, const floor_request *req);
 
 void elevator_step(elevator *elevator) {
@@ -33,6 +33,7 @@ void handle_stationary(elevator *elevator) {
 
     if (head->floor_no == elevator->last_floor) {
         while (head && head->floor_no == elevator->last_floor) {
+            (*elevator->elevator_system->floors)[head->floor_no].pending_requests &= ~head->req_type;
             AVS_VECTOR_REMOVE_AT(&elevator->queued_floors, 0);
             head = AVS_VECTOR_FRONT(elevator->queued_floors);
         }
@@ -68,19 +69,19 @@ void handle_passing_by(elevator *elevator) {
 }
 
 bool elevator_enqueue_floor(elevator *elevator, const floor_request *floor_request) {
-    const size_t queued_no = AVS_VECTOR_SIZE(elevator->queued_floors);
-    const size_t incoming_weight = request_weight(elevator, floor_request);
-
-    size_t last_weight;
-    size_t i = 0;
-
-    while (i < queued_no && incoming_weight > (last_weight = request_weight(elevator, &(*elevator->queued_floors)[i]))) {
-        i++;
+    //duplicated requests
+    if ((*elevator->elevator_system->floors)[floor_request->floor_no].pending_requests & floor_request->req_type) {
+        return false;
     }
 
-    //duplicated request
-    if (i < queued_no && incoming_weight == last_weight) {
-        return false;
+    const size_t queued_no = AVS_VECTOR_SIZE(elevator->queued_floors);
+    const size_t incoming_distance = request_distance(elevator, floor_request);
+
+    size_t last_distance;
+    size_t i = 0;
+
+    while (i < queued_no && incoming_distance > (last_distance = request_distance(elevator, &(*elevator->queued_floors)[i]))) {
+        i++;
     }
 
     //we have to insert the request -> increase vector size, move elements after insertion point
@@ -93,6 +94,7 @@ bool elevator_enqueue_floor(elevator *elevator, const floor_request *floor_reque
     );
 
     (*elevator->queued_floors)[i] = *floor_request;
+    (*elevator->elevator_system->floors)[floor_request->floor_no].pending_requests |= floor_request->req_type;
 
     return true;
 }
@@ -106,7 +108,7 @@ void elevator_switch_state(elevator *elevator, elevator_state target_state) {
     elevator->state = target_state;
 }
 
-size_t request_weight(elevator *elevator, const floor_request *req) {
+size_t request_distance(elevator *elevator, const floor_request *req) {
     const size_t floor_count = AVS_VECTOR_SIZE(elevator->elevator_system->floors);
 
     size_t distance = 0;
@@ -147,8 +149,7 @@ size_t request_weight(elevator *elevator, const floor_request *req) {
         while (sim_dir != dest_dir || sim_floor != req->floor_no);
     }
 
-    //multiply distance and add 1 if REQ_DROPOFF to have a total order on all requests
-    return distance * 2 + (req->req_type == REQ_DROPOFF ? 1 : 0);
+    return distance;
 }
 
 direction destination_direction(elevator *elevator, const floor_request *req) {

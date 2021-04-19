@@ -7,7 +7,7 @@
 
 #include "elevator_system_data.h"
 
-void elevator_system_init(elevator_system *system, size_t elevator_count, size_t floor_count, const floor *floors);
+void elevator_system_init(elevator_system *system, size_t elevator_count, size_t floor_count);
 void elevator_system_free(elevator_system *system);
 
 void elevator_system_step(elevator_system *system);

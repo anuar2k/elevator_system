@@ -11,10 +11,12 @@ typedef enum {
     DIR_BOTH,
 } direction;
 
+//defined this way to allow for bitwise checks
 typedef enum {
-    REQ_PICK_UP,
-    REQ_PICK_DOWN,
-    REQ_DROPOFF
+    REQ_NONE = 0b000,
+    REQ_PICK_UP = 0b001,
+    REQ_PICK_DOWN = 0b010,
+    REQ_DROPOFF = 0b100
 } req_type;
 
 typedef enum {
@@ -32,9 +34,7 @@ typedef struct {
 } floor_request;
 
 typedef struct {
-    const char *label;
-    direction available_directions;
-    direction requested_directions;
+    req_type pending_requests;
 } floor;
 
 typedef struct elevator elevator;

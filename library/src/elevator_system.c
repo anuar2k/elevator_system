@@ -6,14 +6,15 @@
 #include <stdbool.h>
 #include <avsystem/commons/avs_vector.h>
 
-void elevator_system_init(elevator_system *system, size_t elevator_count, size_t floor_count, const floor *floors) {
+void elevator_system_init(elevator_system *system, size_t elevator_count, size_t floor_count) {
     system->elevators = AVS_VECTOR_NEW(elevator);
     system->floors = AVS_VECTOR_NEW(floor);
     system->rr_next_elevator = 0;
 
     for (size_t i = 0; i < floor_count; i++) {
-        floor to_insert = floors[i];
-        to_insert.requested_directions = DIR_NONE;
+        floor to_insert = {
+            .pending_requests = REQ_NONE
+        };
 
         AVS_VECTOR_PUSH(&system->floors, &to_insert);
     }

@@ -1,8 +1,8 @@
 CC       := gcc
 CFLAGS   := -g2 -Wall
-SRC      := $(wildcard src/*.c)
+SRC      := $(wildcard ../src/*.c)
 TEST_SRC := $(wildcard *.c)
-INCLUDES := $(wildcard include/*.h)
+INCLUDES := $(wildcard ../include/*.h)
 
 .PHONY: all test clean
 

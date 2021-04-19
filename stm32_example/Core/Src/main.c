@@ -97,23 +97,9 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-  floor floors[] = {
-    {
-      .label = "-1",
-      .available_directions = DIR_UP
-    },
-    {
-      .label = "0",
-      .available_directions = DIR_BOTH
-    },
-    {
-      .label = "+1",
-      .available_directions = DIR_DOWN
-    }
-  };
 
   elevator_system es;
-  elevator_system_init(&es, 1, sizeof(floors) / sizeof(*floors), floors);
+  elevator_system_init(&es, 1, 3);
 
   elevator_system_request_pickup(&es, 1, DIR_DOWN);
   elevator_system_request_pickup(&es, 2, DIR_DOWN);
