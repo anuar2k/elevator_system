@@ -17,6 +17,7 @@ build/client: client.c ../library/build/libelevator_system.a
 		client.c \
 		$(shell find ../library/deps/avs_commons/src -name '*.c') \
 		-lelevator_system \
+		-lncurses \
 		-lm \
 		-o build/client
 
