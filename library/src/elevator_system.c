@@ -70,3 +70,7 @@ bool elevator_system_request_dropoff(elevator_system *system, size_t elevator_no
 
     return elevator_enqueue_floor(&(*system->elevators)[elevator_no], &floor_request);
 }
+
+#ifdef UNIT_TESTING
+#include "elevator_system_test.c"
+#endif

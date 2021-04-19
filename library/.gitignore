@@ -53,3 +53,4 @@ dkms.conf
 
 build/
 obj/
+tests/test_runner
